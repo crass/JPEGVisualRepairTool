@@ -204,6 +204,7 @@ MCUsrcArray=[];
 busy=false;
 shiftRendering=0;
 undoList=[];
+redoList=[];
 
 //show coordinates of original picture
 cPicture.addEventListener("mousemove", function(e){
@@ -434,6 +435,7 @@ document.body.addEventListener("paste",function(ev){
 		n++;
 	}
 	undoList.push({action: "paste", position: selectedMCU.i, count: n});
+	redoList.length = 0;
 	updateAllMCU(selectedMCU.i);
 	document.getElementById("MCUn").innerHTML="MCU count: "+mcucount;
 	console.log("Paste MCU@"+selectedMCU.i+","+n);
@@ -685,7 +687,11 @@ document.body.addEventListener("keydown",function(ev){
 			}
 			mcucount=MCUarray.length;
 			updateAllMCU(item.position);
+			redoList.push(item)
 		}
+	}
+	if(key==89){	//y
+		;
 	}
 	if(key==70){	//f		fit
 		zoomFactor=1;
@@ -860,6 +866,7 @@ function addMCU(){
 		selectedUpdate();
 		document.getElementById("MCUn").innerHTML="MCU count: "+mcucount;
 		undoList.push({action: "add", position: selectedMCU.i});
+		redoList.length = 0;
 		console.log("Inserted MCU@"+selectedMCU.i);
 	}
 }
@@ -875,6 +882,7 @@ function removeMCU(){
 		}
 		removed=MCUarray.splice(min,1+max-min);	//remove elements
 		undoList.push({action: "delete", position: min, cells: removed});
+		redoList.length = 0;
 		selectedMCU.list=[];
 		mcucount=MCUarray.length;
 		updateAllMCU(min);
@@ -891,6 +899,7 @@ function DCmodMCU(value=1){
 	if(busy) return;
 	if(selectedMCU.i>-1&&document.getElementById("layer").value!="RGB"){	//only single channel
 		undoList.push({action: "DC", position: selectedMCU.i, cell: structuredClone(MCUarray[selectedMCU.i])});
+		redoList.length = 0;
 		if(value==0){
 			var newDC=parseInt(document.getElementById("dcVal").value);
 			if (Number.isNaN(parseInt(newDC))) {
@@ -1115,6 +1124,7 @@ function decodeJpeg(){
 	qmatY=structuredClone(qmatYstd);
 	qmatC=structuredClone(qmatCstd);
 	undoList=[];
+	redoList=[];
 	console.time("decode");
 	var infoDiv=document.getElementById("imgInfoExt");
 	infoDiv.innerHTML="";
@@ -1807,6 +1817,7 @@ function fixColorDiff(){
 		}
 	}
 	undoList.push({action: "fixColor", position: colorFixList[0].i, cells: originalMCU});
+	redoList.length = 0;
 	for(bC=1;bC<MCUarray[selectedMCU.i].blocks.length&&MCUarray[selectedMCU.i].blocks[bC].blockType!="C";bC++);	//C1 index
 	for(bC2=1;bC2<MCUarray[selectedMCU.i].blocks.length&&MCUarray[selectedMCU.i].blocks[bC2].blockType!="C2";bC2++); //C2 index
 	var refComp,objComp,deltaComp,deltaCompZ;
